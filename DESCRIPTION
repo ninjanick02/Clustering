@@ -1,0 +1,30 @@
+Package: Clustering
+Type: Package
+Title: K-Means Clustering with R and C++ Implementations
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Nicholas", "Treloar",
+      email = "ntreloar@umich.edu",
+      role = c("aut", "cre")
+    )
+  )
+Description: Provides efficient k-means clustering implementations using Lloyd's 
+    algorithm. Includes both a pure R implementation with vectorized operations 
+    and a high-performance C++ implementation via Rcpp.
+License: MIT + file LICENSE
+URL: https://github.com/ninjanick02/Clustering
+BugReports: https://github.com/ninjanick02/Clustering/issues
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    Rcpp
+LinkingTo: Rcpp
+RoxygenNote: 7.3.3
+Suggests: 
+    knitr,
+    rmarkdown,
+    mclust,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr

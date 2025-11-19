@@ -1,0 +1,218 @@
+---
+title: "K-Means Clustering with the Clustering Package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{K-Means Clustering with the Clustering Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(Clustering)
+library(stats) # For stats::kmeans
+library(bench) # For bench::mark
+library(mclust) # If you want to use the package for data/comparison
+library(testthat)
+```
+
+# Import Sample Iris Dataset
+```{r}
+set.seed(123)
+X <- as.matrix(iris[,1:4])
+head(X) #[,1:4]
+```
+
+# Run K-means clustering
+```{r}
+k <- 3
+initial_indices <- sample.int(nrow(X), k)
+initial_centers_matrix <- X[initial_indices, , drop = FALSE]
+
+res_my_r <- Kmeans(X, centers = initial_centers_matrix,  max_iter = 100, tol = 1e-4)
+res_my_cpp <- Clustering::Kmeans_cpp(X, centers = initial_centers_matrix, max_iter = 100, tol = 1e-4)
+res_stats <- stats::kmeans(X, centers = initial_centers_matrix, iter.max = 100, algorithm = "Lloyd")
+```
+# Check that the results are equal
+```{r}
+ari <- adjustedRandIndex(res_my_r$cluster, res_stats$cluster)
+expect_equal(res_my_r$centers, res_stats$centers, tolerance = 1e-4, ignore_attr = TRUE)
+expect_equal(res_my_cpp$centers, res_stats$centers, tolerance = 1e-4, ignore_attr = TRUE)
+
+#cat("Are centers approximately equal? ", is_centers_equal, "\n")
+#cat("Are centers approximately equal? ", is_centers_equal, "\n")
+```
+
+## Benchmarking
+```{r}
+bench_results = bench::mark(
+  Base_R = Kmeans(X, centers = k, max_iter = 50),
+  CPP = Clustering::Kmeans_cpp(X, centers = k, max_iter = 50),
+  Base_R_Stats = stats::kmeans(X, centers = k, iter.max = 50),
+  iterations = 100,
+  check = FALSE
+)
+print(bench_results)
+```
+
+```{r}
+plot(bench_results)
+```
+
+## Introduction
+
+The **Clustering** package provides efficient implementations of the k-means clustering algorithm. This vignette demonstrates how to use both the R and C++ implementations for various clustering tasks.
+
+## Basic Usage
+
+Let's start with a simple example using the famous iris dataset:
+
+```{r basic-example}
+# Prepare the iris data (use only numeric columns)
+X_iris <- as.matrix(iris[, 1:4])
+
+# Run k-means clustering with k=3 clusters
+set.seed(123)
+result <- Kmeans(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+
+# Display the results
+print(result$centers)
+print(table(result$cluster))
+```
+
+The function returns a list containing:
+
+- `centers`: The final cluster center coordinates
+- `cluster`: Vector of cluster assignments for each observation
+- `iter`: Number of iterations until convergence
+- `withinss`: Within-cluster sum of squares for each cluster
+- `tot.withinss`: Total within-cluster sum of squares
+
+## Custom Initialization
+
+You can provide custom initial cluster centers instead of random initialization:
+
+```{r custom-init}
+# Select specific observations as initial centers
+initial_centers <- X_iris[c(1, 50, 100), ]
+
+result_custom <- Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
+print(result_custom$centers)
+```
+
+## Using the C++ Implementation
+
+For larger datasets, the C++ implementation provides better performance:
+
+```{r cpp-implementation}
+# Run k-means with C++ implementation
+set.seed(123)
+result_cpp <- Kmeans_cpp(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+
+# The output format is identical to the R implementation
+print(result_cpp$centers)
+cat("Converged in", result_cpp$iter, "iterations\n")
+```
+
+## Visualizing Results
+
+Here's how to visualize the clustering results:
+
+```{r visualization}
+# Create a simple 2D visualization using the first two features
+plot(X_iris[, 1], X_iris[, 2], 
+     col = result$cluster, 
+     pch = 19,
+     xlab = "Sepal.Length", 
+     ylab = "Sepal.Width",
+     main = "K-Means Clustering of Iris Data")
+
+# Add cluster centers
+points(result$centers[, 1], result$centers[, 2], 
+       col = 1:3, 
+       pch = 8, 
+       cex = 2, 
+       lwd = 2)
+
+legend("topright", 
+       legend = paste("Cluster", 1:3), 
+       col = 1:3, 
+       pch = 19)
+```
+
+## Convergence and Diagnostics
+
+You can examine the convergence behavior and cluster quality:
+
+```{r diagnostics}
+# Check convergence
+cat("Number of iterations:", result$iter, "\n")
+cat("Total within-cluster sum of squares:", result$tot.withinss, "\n")
+
+# Within-cluster sum of squares by cluster
+print(result$withinss)
+
+# Compare actual species labels with clusters
+table(Cluster = result$cluster, Species = iris$Species)
+```
+
+## Handling Different Data Sizes
+
+The package efficiently handles datasets of various sizes:
+
+```{r different-sizes}
+# Small dataset
+small_data <- matrix(rnorm(100), ncol = 2)
+small_result <- Kmeans(small_data, centers = 3)
+
+# Larger dataset - C++ implementation is faster
+set.seed(42)
+large_data <- matrix(rnorm(10000), ncol = 10)
+large_result <- Kmeans_cpp(large_data, centers = 5)
+
+cat("Small dataset converged in", small_result$iter, "iterations\n")
+cat("Large dataset converged in", large_result$iter, "iterations\n")
+```
+
+## Comparison with stats::kmeans
+
+The package produces results comparable to R's built-in `stats::kmeans` function:
+
+```{r comparison}
+# Set up for fair comparison
+set.seed(123)
+initial_indices <- sample.int(nrow(X_iris), 3)
+initial_centers <- X_iris[initial_indices, , drop = FALSE]
+
+# Our implementation
+our_result <- Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
+
+# stats::kmeans
+stats_result <- stats::kmeans(X_iris, centers = initial_centers, 
+                              iter.max = 100, algorithm = "Lloyd")
+
+# Compare results (may differ slightly due to numerical precision)
+cat("Our tot.withinss:", our_result$tot.withinss, "\n")
+cat("stats tot.withinss:", stats_result$tot.withinss, "\n")
+```
+
+## Best Practices
+
+1. **Set a seed** for reproducibility when using random initialization
+2. **Choose k wisely** based on domain knowledge or methods like the elbow method
+3. **Run multiple times** with different initializations to avoid local minima
+4. **Use C++ implementation** for larger datasets (n > 1000 or p > 10)
+5. **Check convergence** by examining the `iter` output
+
+## Conclusion
+
+The Clustering package provides a straightforward and efficient way to perform k-means clustering in R, with the flexibility to choose between pure R and optimized C++ implementations based on your performance needs.
+

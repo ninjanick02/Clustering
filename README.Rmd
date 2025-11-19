@@ -1,0 +1,105 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# Clustering
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/ninjanick02/Clustering/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ninjanick02/Clustering/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/ninjanick02/Clustering/graph/badge.svg)](https://app.codecov.io/gh/ninjanick02/Clustering)
+<!-- badges: end -->
+
+The **Clustering** package provides efficient implementations of the k-means clustering algorithm using Lloyd's method. It includes both a pure R implementation with vectorized operations and a high-performance C++ implementation via Rcpp.
+
+## Features
+
+- **Two implementations**: Choose between pure R (`Kmeans()`) or optimized C++ (`Kmeans_cpp()`)
+- **Vectorized operations**: The R implementation uses efficient matrix operations
+- **Robust handling**: Gracefully handles empty clusters by re-initialization
+- **Comprehensive output**: Returns cluster assignments, centers, within-cluster sum of squares, and iteration counts
+- **Flexible initialization**: Accepts either the number of clusters or initial center coordinates
+
+## Installation
+
+You can install the development version of Clustering from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("ninjanick02/Clustering")
+```
+
+## Example
+
+Here's a basic example using the classic iris dataset:
+
+```{r example}
+library(Clustering)
+
+# Prepare the data
+X_iris <- as.matrix(iris[, 1:4])
+
+# Run k-means clustering with k=3 clusters
+set.seed(123)
+result <- Kmeans(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+
+# View the cluster centers
+print(result$centers)
+
+# View cluster assignments (first 10 observations)
+print(result$cluster[1:10])
+
+# Check convergence
+cat("Converged in", result$iter, "iterations\n")
+cat("Total within-cluster sum of squares:", result$tot.withinss, "\n")
+```
+
+### Using the C++ implementation
+
+For larger datasets, the C++ implementation provides better performance:
+
+```{r cpp_example}
+# Run k-means with C++ implementation
+set.seed(123)
+result_cpp <- Kmeans_cpp(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+
+# Results are in the same format
+print(result_cpp$centers)
+```
+
+### Custom initialization
+
+You can also provide custom initial cluster centers:
+
+```{r custom_init}
+# Use specific observations as initial centers
+initial_centers <- X_iris[c(1, 50, 100), ]
+result_custom <- Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
+
+print(result_custom$centers)
+```
+
+## Performance
+
+The package includes both R and C++ implementations to balance ease of use and performance:
+
+- **R implementation** (`Kmeans`): Uses vectorized matrix operations for good performance in pure R
+- **C++ implementation** (`Kmeans_cpp`): Provides additional speed improvements for larger datasets
+
+## Getting Help
+
+If you encounter any issues or have questions:
+
+- Report bugs at <https://github.com/ninjanick02/Clustering/issues>
+- See the vignette for more detailed examples: `vignette("k_means_clustering", package = "Clustering")`
+
