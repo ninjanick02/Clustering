@@ -56,7 +56,7 @@ NULL
 #' @export
 Kmeans_cpp = function(X, centers, max_iter = 100, tol = 1e-4) {
 
-  # --- Input Validation (R-side) ---
+  # Input Validation
   if (!is.matrix(X) || !is.numeric(X)) {
     stop("X must be a numeric matrix.")
   }
@@ -87,9 +87,7 @@ Kmeans_cpp = function(X, centers, max_iter = 100, tol = 1e-4) {
     stop("tol must be non-negative.")
   }
 
-  # --- Initialization (R-side) ---
   if (is.numeric(centers) && length(centers) == 1) {
-    # 'centers' is an integer k
     k = as.integer(centers)
     if (k <= 0 || k > nrow(X)) {
       stop("Number of clusters (k) must be a positive integer",
@@ -114,13 +112,11 @@ Kmeans_cpp = function(X, centers, max_iter = 100, tol = 1e-4) {
     stop("'centers' must be either an integer (k) or a matrix of initial centers.")
   }
 
-  # --- Call the C++ function for the heavy lifting ---
-  # .Call() is not needed, Rcpp_Exports.R creates a nice R wrapper for us
+  # Call the C++ function
   cpp_result = kmeans_cpp_loop(X, initial_centers_matrix, max_iter, tol)
 
-  # --- Post-processing (R-side) ---
-  # The C++ function returns the core components.
-  # We calculate WSS here in R for simplicity.
+  # Post-processing
+  # Calculate WSS here
   centers = cpp_result$centers
   cluster_assignments = cpp_result$cluster
 
@@ -135,7 +131,7 @@ Kmeans_cpp = function(X, centers, max_iter = 100, tol = 1e-4) {
 
   tot_withinss = sum(withinss)
 
-  # --- Return Results (same format as my_kmeans) ---
+  # Return Results
   list(
     centers = centers,
     cluster = cluster_assignments,

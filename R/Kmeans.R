@@ -95,12 +95,6 @@ Kmeans = function(X, centers, max_iter = 100, tol = 1e-4) {
 
   # Iteration loop
   for (i in 1:max_iter) {
-
-    # --- 1. Assignment Step (VECTORIZED) ---
-    # This replaces your for-loop, which was the main bottleneck.
-    # We use matrix algebra to calculate all squared distances at once.
-    # The formula for squared Euclidean distance (a-b)^2 is (a^2 - 2ab + b^2)
-
     X_sq_sums = rowSums(X^2)                     # a^2 (for each row in X)
     centers_sq_sums = rowSums(centers_matrix^2) # b^2 (for each row in centers_matrix)
     prod_matrix = X %*% t(centers_matrix)       # ab (the n x k matrix of dot products)
@@ -111,17 +105,11 @@ Kmeans = function(X, centers, max_iter = 100, tol = 1e-4) {
 
     new_cluster_assignments = apply(dist_matrix, 1, which.min)
 
-    # --- 2. Convergence Check (Part 1) ---
     if (identical(new_cluster_assignments, cluster_assignments)) {
       break
     }
     cluster_assignments = new_cluster_assignments
 
-    # --- 3. Update Step ---
-    # NOTE: This loop is still here. While it could be vectorized
-    # (e.g., using rowsum), your loop-based approach is very
-    # robust for handling empty clusters, which is good.
-    # The real bottleneck was the Assignment Step, not this one.
     new_centers = matrix(0, nrow = k, ncol = ncol(X))
     for (j in 1:k) {
       cluster_points = X[cluster_assignments == j, , drop = FALSE]
@@ -133,17 +121,14 @@ Kmeans = function(X, centers, max_iter = 100, tol = 1e-4) {
       }
     }
 
-    # --- 4. Convergence Check (Part 2) ---
     center_change = sum((new_centers - centers_matrix)^2)
     centers_matrix = new_centers
     if (center_change < tol) {
       break
     }
-  } # End of iteration loop
+  }
 
-  # --- 5. Calculate WSS (VECTORIZED) ---
-  # This replaces your final for-loop for better performance.
-
+  # Calculate WSS
   # Get the center coordinates for each point's assigned cluster
   point_centers = centers_matrix[cluster_assignments, ]
 
@@ -161,7 +146,7 @@ Kmeans = function(X, centers, max_iter = 100, tol = 1e-4) {
 
   tot_withinss = sum(withinss_full)
 
-  # --- 6. Return Results ---
+  # Return Results
   list(
     centers = centers_matrix,
     cluster = cluster_assignments,
