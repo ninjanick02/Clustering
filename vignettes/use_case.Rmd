@@ -26,7 +26,7 @@ library(testthat)
 
 ## Introduction
 
-The **Clustering** package provides efficient implementations of the k-means clustering algorithm. This vignette demonstrates how to use both the R and C++ implementations for various clustering tasks.
+The **Clustering** package provides implementations of the k-means clustering algorithm. This vignette demonstrates how to use both the R and C++ implementations for various clustering tasks and compares their efficiency to the stats::kmeans function.
 
 ## Basic Usage
 
