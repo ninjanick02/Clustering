@@ -7,17 +7,59 @@
 Kmeans_cpp(X, centers, max_iter = 100, tol = 1e-04)
 }
 \arguments{
-\item{X}{A numeric matrix of data.}
+\item{X}{A numeric matrix of data. Each row is an observation, and each
+column is a variable.}
 
-\item{centers}{Initial centers matrix.}
+\item{centers}{Either the number of clusters (k) or a matrix of initial
+cluster centers.}
 
-\item{max_iter}{Maximum iterations.}
+\item{max_iter}{The maximum number of iterations allowed. Default is 100.}
 
-\item{tol}{Tolerance for convergence.}
+\item{tol}{The tolerance for convergence. The algorithm stops if the sum of
+squared distances between old and new centers is less than this value.
+Default is 1e-4.}
 }
 \value{
-A list containing clusters and centers.
+A list with the following components:
+\item{centers}{A matrix of the final cluster centers.}
+\item{cluster}{A vector of integers (from 1:k) indicating the cluster
+  to which each point is allocated.}
+\item{iter}{The number of iterations performed.}
+\item{withinss}{A vector of the within-cluster sum of squares for each
+  cluster.}
+\item{tot.withinss}{The sum of all `withinss`.}
 }
 \description{
-K-Means Clustering (C++ Implementation)
+Performs k-means clustering on a numeric matrix using Lloyd's algorithm
+with a high-performance C++ backend via Rcpp. This implementation is
+recommended for larger datasets where performance is critical.
+}
+\details{
+This function uses a C++ implementation of Lloyd's algorithm for improved
+performance compared to the pure R implementation. The core iteration loop
+runs in compiled C++ code, making it significantly faster for large datasets.
+
+Empty clusters are handled by re-initializing them to random data points.
+
+The algorithm stops when either:
+- Cluster assignments no longer change, or
+- The sum of squared distances between old and new centers is less than `tol`, or
+- The maximum number of iterations (`max_iter`) is reached.
+}
+\examples{
+# Use the iris dataset
+X_iris = as.matrix(iris[, 1:4])
+
+# Run k-means with k=3
+set.seed(123)
+result = Kmeans_cpp(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+print(result$centers)
+
+# Use custom initial centers
+initial = X_iris[c(1, 50, 100), ]
+result2 = Kmeans_cpp(X_iris, centers = initial)
+
+}
+\seealso{
+\code{\link{Kmeans}} for the pure R implementation
 }
