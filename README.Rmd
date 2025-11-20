@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 [![Codecov test coverage](https://codecov.io/gh/ninjanick02/Clustering/graph/badge.svg)](https://app.codecov.io/gh/ninjanick02/Clustering)
 <!-- badges: end -->
 
-The **Clustering** package provides efficient implementations of the k-means clustering algorithm using Lloyd's method. It includes both a pure R implementation with vectorized operations and a high-performance C++ implementation via Rcpp.
+The **Clustering** package provides implementations of the k-means clustering algorithm using Lloyd's method. It includes both a pure R implementation with vectorized operations and a high-performance C++ implementation via Rcpp.
 
 ## Features
 

@@ -33,10 +33,10 @@ Performs k-means clustering on a numeric matrix using Lloyd's algorithm.
 }
 \examples{
 # Use the iris dataset
-X_iris <- as.matrix(iris[, 1:4])
+X_iris = as.matrix(iris[, 1:4])
 
 # Run k-means with k=3
-result <- Kmeans(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+result = Kmeans(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
 print(result$centers)
 
 }

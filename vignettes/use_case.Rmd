@@ -24,49 +24,6 @@ library(mclust) # If you want to use the package for data/comparison
 library(testthat)
 ```
 
-# Import Sample Iris Dataset
-```{r}
-set.seed(123)
-X <- as.matrix(iris[,1:4])
-head(X) #[,1:4]
-```
-
-# Run K-means clustering
-```{r}
-k <- 3
-initial_indices <- sample.int(nrow(X), k)
-initial_centers_matrix <- X[initial_indices, , drop = FALSE]
-
-res_my_r <- Kmeans(X, centers = initial_centers_matrix,  max_iter = 100, tol = 1e-4)
-res_my_cpp <- Clustering::Kmeans_cpp(X, centers = initial_centers_matrix, max_iter = 100, tol = 1e-4)
-res_stats <- stats::kmeans(X, centers = initial_centers_matrix, iter.max = 100, algorithm = "Lloyd")
-```
-# Check that the results are equal
-```{r}
-ari <- adjustedRandIndex(res_my_r$cluster, res_stats$cluster)
-expect_equal(res_my_r$centers, res_stats$centers, tolerance = 1e-4, ignore_attr = TRUE)
-expect_equal(res_my_cpp$centers, res_stats$centers, tolerance = 1e-4, ignore_attr = TRUE)
-
-#cat("Are centers approximately equal? ", is_centers_equal, "\n")
-#cat("Are centers approximately equal? ", is_centers_equal, "\n")
-```
-
-## Benchmarking
-```{r}
-bench_results = bench::mark(
-  Base_R = Kmeans(X, centers = k, max_iter = 50),
-  CPP = Clustering::Kmeans_cpp(X, centers = k, max_iter = 50),
-  Base_R_Stats = stats::kmeans(X, centers = k, iter.max = 50),
-  iterations = 100,
-  check = FALSE
-)
-print(bench_results)
-```
-
-```{r}
-plot(bench_results)
-```
-
 ## Introduction
 
 The **Clustering** package provides efficient implementations of the k-means clustering algorithm. This vignette demonstrates how to use both the R and C++ implementations for various clustering tasks.
@@ -77,11 +34,11 @@ Let's start with a simple example using the famous iris dataset:
 
 ```{r basic-example}
 # Prepare the iris data (use only numeric columns)
-X_iris <- as.matrix(iris[, 1:4])
+X_iris = as.matrix(iris[, 1:4])
 
 # Run k-means clustering with k=3 clusters
 set.seed(123)
-result <- Kmeans(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+result = Kmeans(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
 
 # Display the results
 print(result$centers)
@@ -102,9 +59,9 @@ You can provide custom initial cluster centers instead of random initialization:
 
 ```{r custom-init}
 # Select specific observations as initial centers
-initial_centers <- X_iris[c(1, 50, 100), ]
+initial_centers = X_iris[c(1, 50, 100), ]
 
-result_custom <- Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
+result_custom = Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
 print(result_custom$centers)
 ```
 
@@ -115,7 +72,7 @@ For larger datasets, the C++ implementation provides better performance:
 ```{r cpp-implementation}
 # Run k-means with C++ implementation
 set.seed(123)
-result_cpp <- Kmeans_cpp(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
+result_cpp = Kmeans_cpp(X_iris, centers = 3, max_iter = 100, tol = 1e-4)
 
 # The output format is identical to the R implementation
 print(result_cpp$centers)
@@ -170,13 +127,13 @@ The package efficiently handles datasets of various sizes:
 
 ```{r different-sizes}
 # Small dataset
-small_data <- matrix(rnorm(100), ncol = 2)
-small_result <- Kmeans(small_data, centers = 3)
+small_data = matrix(rnorm(100), ncol = 2)
+small_result = Kmeans(small_data, centers = 3)
 
 # Larger dataset - C++ implementation is faster
 set.seed(42)
-large_data <- matrix(rnorm(10000), ncol = 10)
-large_result <- Kmeans_cpp(large_data, centers = 5)
+large_data = matrix(rnorm(10000), ncol = 10)
+large_result = Kmeans_cpp(large_data, centers = 5)
 
 cat("Small dataset converged in", small_result$iter, "iterations\n")
 cat("Large dataset converged in", large_result$iter, "iterations\n")
@@ -189,14 +146,14 @@ The package produces results comparable to R's built-in `stats::kmeans` function
 ```{r comparison}
 # Set up for fair comparison
 set.seed(123)
-initial_indices <- sample.int(nrow(X_iris), 3)
-initial_centers <- X_iris[initial_indices, , drop = FALSE]
+initial_indices = sample.int(nrow(X_iris), 3)
+initial_centers = X_iris[initial_indices, , drop = FALSE]
 
 # Our implementation
-our_result <- Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
+our_result = Kmeans(X_iris, centers = initial_centers, max_iter = 100, tol = 1e-4)
 
 # stats::kmeans
-stats_result <- stats::kmeans(X_iris, centers = initial_centers, 
+stats_result = stats::kmeans(X_iris, centers = initial_centers, 
                               iter.max = 100, algorithm = "Lloyd")
 
 # Compare results (may differ slightly due to numerical precision)
